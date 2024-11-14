@@ -1,10 +1,13 @@
 const express = require('express');
-const sharp = require('sharp');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
+const { renderToString } = require('katex');
 const app = express();
 const port = 3000;
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.get('/convert-webp-to-jpg', async (req, res) => {
   const { imageUrl } = req.query;
@@ -15,23 +18,34 @@ app.get('/convert-webp-to-jpg', async (req, res) => {
 
   try {
     const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-
     const outputFilePath = path.join(__dirname, 'output.jpg');
     
-    sharp(response.data)
-      .toFormat('jpeg')
-      .toFile(outputFilePath, (err, info) => {
-        if (err) {
-          console.error('Error converting image:', err);
-          return res.status(500).send('❌ Error converting image');
-        }
+    fs.writeFile(outputFilePath, response.data, (err) => {
+      if (err) {
+        console.error('Error saving image:', err);
+        return res.status(500).send('❌ Error saving image');
+      }
 
-        console.log('Image converted successfully:', info);
-        res.status(200).sendFile(outputFilePath); // Send the converted file back
-      });
+      console.log('Image saved successfully');
+      res.status(200).sendFile(outputFilePath);
+    });
   } catch (error) {
     console.error('Error downloading the image:', error.message);
     return res.status(500).send('❌ Error downloading the image');
+  }
+});
+
+app.post('/convert-latex', (req, res) => {
+  try {
+    const inputText = req.body.text;
+
+    const outputText = inputText.replace(/\\(.*?)\\/g, (match, latexExpr) => {
+      return renderToString(latexExpr, { throwOnError: false });
+    });
+
+    res.status(200).send({ output: outputText });
+  } catch (error) {
+    res.status(500).send({ error: 'Error processing LaTeX text.' });
   }
 });
 
