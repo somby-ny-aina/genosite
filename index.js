@@ -9,6 +9,7 @@ const port = 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Endpoint to convert WebP to JPEG (without using `sharp` library)
 app.get('/convert-webp-to-jpg', async (req, res) => {
   const { imageUrl } = req.query;
 
@@ -20,6 +21,7 @@ app.get('/convert-webp-to-jpg', async (req, res) => {
     const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
     const outputFilePath = path.join(__dirname, 'output.jpg');
     
+    // Directly saving the image without conversion (assuming the input is already in JPEG).
     fs.writeFile(outputFilePath, response.data, (err) => {
       if (err) {
         console.error('Error saving image:', err);
@@ -27,7 +29,7 @@ app.get('/convert-webp-to-jpg', async (req, res) => {
       }
 
       console.log('Image saved successfully');
-      res.status(200).sendFile(outputFilePath);
+      res.status(200).sendFile(outputFilePath); // Send the saved file back
     });
   } catch (error) {
     console.error('Error downloading the image:', error.message);
@@ -35,14 +37,27 @@ app.get('/convert-webp-to-jpg', async (req, res) => {
   }
 });
 
+// Endpoint to convert LaTeX expressions to HTML (supports both POST and GET requests)
+const convertLatexToHtml = (latexText) => {
+  return latexText.replace(/\\(.*?)\\/g, (match, latexExpr) => {
+    return renderToString(latexExpr, { throwOnError: false });
+  });
+};
+
 app.post('/convert-latex', (req, res) => {
   try {
     const inputText = req.body.text;
+    const outputText = convertLatexToHtml(inputText);
+    res.status(200).send({ output: outputText });
+  } catch (error) {
+    res.status(500).send({ error: 'Error processing LaTeX text.' });
+  }
+});
 
-    const outputText = inputText.replace(/\\(.*?)\\/g, (match, latexExpr) => {
-      return renderToString(latexExpr, { throwOnError: false });
-    });
-
+app.get('/convert-latex', (req, res) => {
+  try {
+    const inputText = req.query.text;
+    const outputText = convertLatexToHtml(inputText);
     res.status(200).send({ output: outputText });
   } catch (error) {
     res.status(500).send({ error: 'Error processing LaTeX text.' });
