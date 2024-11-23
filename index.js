@@ -1,6 +1,5 @@
 const express = require('express');
 const sharp = require('sharp');
-const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const app = express();
@@ -34,6 +33,12 @@ app.get('/convert-webp-to-jpg', async (req, res) => {
     return res.status(500).send('❌ Error downloading the image');
   }
 });
+
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
+
+app.use(bodyParser.json());
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
