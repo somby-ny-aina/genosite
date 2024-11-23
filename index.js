@@ -38,8 +38,6 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
 
-app.use(bodyParser.json());
-
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
