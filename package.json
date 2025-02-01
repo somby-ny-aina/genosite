@@ -1,0 +1,16 @@
+{
+  "name": "webp-to-jpg-converter",
+  "version": "1.0.0",
+  "description": "A simple Express server to convert WebP images to JPG",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "express": "^4.18.2",
+    "fs": "0.0.1-security",
+    "path": "^0.12.7",
+    "sharp": "^0.32.6"
+  }
+}
